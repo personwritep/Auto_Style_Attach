@@ -2,4 +2,4 @@
 また、PC版ページの「いいね」「リブログ」「コメント」のSNSスイッチを記事単位で非表示にできます。<br>
 <br>
 このツールの詳細については、以下のページの「機能概要」を参照ください。<br>
-https://ameblo.jp/personwritep/entry-12872916069.html
+https://ameblo.jp/personwritep/entry-12884591593.html
