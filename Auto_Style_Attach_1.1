@@ -1,0 +1,180 @@
+// ==UserScript==
+// @name        Auto Style Attach ⭐
+// @namespace  http://tampermonkey.net/
+// @version      1.1
+// @description  文書末尾に常設 styleタグを自動記入する
+// @author       Ameba Blog User
+// @match        https://blog.ameba.jp/ucs/entry/srventry*
+// @exclude      https://blog.ameba.jp/ucs/entry/srventrylist.do*
+// @grant         none
+// ==/UserScript==
+
+// 文書保存時（下書きを含む全投稿時）に常設 styleタグを書込みます。
+// Auto Style Attach SNS の機能を統合し、SNSボタン非表示を設定できます。
+
+
+let retry=0;
+let interval=setInterval(wait_target, 100);
+function wait_target(){
+    retry++;
+    if(retry>10){ // リトライ制限 10回 1sec
+        clearInterval(interval); }
+    let target=document.getElementById('cke_1_contents'); // 監視 target
+    if(target){
+        clearInterval(interval);
+        main(); }}
+
+
+function main(){
+    let target=document.getElementById('cke_1_contents'); // 監視 target
+    let monitor=new MutationObserver(catch_publish);
+    monitor.observe(target, {childList: true}); // 通常・HTML編集切換による発火不能を防ぐ
+
+    catch_publish();
+
+    function catch_publish(){
+
+        panel_add();
+
+        let all_check=document.querySelector('#allFlg');
+        if(all_check){
+            report();
+            all_check.onclick=function(event){
+                if(report()==-1){ // HTML表示でチェック不可能
+                    event.preventDefault(); }
+                else{ // 通常表示でのみチェック可能
+                    if(report()==0){
+                        insert_ptag(1);
+                        report(); }
+                    else if(report()==1){
+                        insert_ptag(0);
+                        report(); }}}}
+
+
+        function report(){
+            let editor_iframe=document.querySelector('.cke_wysiwyg_frame');
+            if(editor_iframe){ // iframe読込みが実行条件
+                let iframe_doc=editor_iframe.contentWindow.document;
+                if(iframe_doc){
+                    let iframe_body=iframe_doc.querySelector('body.cke_editable');
+                    if(iframe_body){
+                        let pts=iframe_body.querySelector('.pts');
+                        if(pts){
+                            all_check.checked=true;
+                            return 1; }
+                        else{
+                            all_check.checked=false;
+                            return 0; }}}}
+            else{
+                return -1; }}
+
+
+        function insert_ptag(n){
+            let editor_iframe=document.querySelector('.cke_wysiwyg_frame');
+            if(editor_iframe){ // iframe読込みが実行条件
+                let iframe_doc=editor_iframe.contentWindow.document;
+                if(iframe_doc){
+                    let iframe_body=iframe_doc.querySelector('body.cke_editable');
+                    if(iframe_body){
+
+                        if(n==0){
+                            let pts=iframe_body.querySelector('.pts');
+                            if(pts){
+                                pts.remove(); }}
+
+                        if(n==1){
+                            // style_ptext を編集して SNSボタンの非表示内容を変更出来ます ⭕
+                            let style_ptext=
+                                '[data-uranus-component="entryAction"], '+
+                                '[data-uranus-component="feedbacks"], '+
+
+                                // 以下は 新タイプスキン対応で追加
+                                '[data-uranus-component="entryShare"], '+
+                                '[data-uranus-component="mainWidget"], '+
+
+                                // 以下は 旧タイプスキン対応で追加（対応不要なら削除可）
+                                '.articleExLinkArea, '+
+                                '.reblogArea, '+
+                                '.commentArea, '+
+                                '.pagingArea:nth-of-type(3), '+
+
+                                // 以下は レトロタイプスキン対応で追加（対応不要なら削除可）
+                                '#exLinkBtn, '+
+                                '#comment_module, '+
+
+                                // 以下は スマホスキン対応
+                                '._2UJLz0lB { display: none; }';
+
+                            let insert_elem_p=iframe_doc.createElement('style');
+                            insert_elem_p.appendChild(iframe_doc.createTextNode(style_ptext));
+                            insert_elem_p.setAttribute('class', 'pts');
+                            iframe_body.appendChild(insert_elem_p); } // style.ptsを追加
+
+                    }}}} // insert_ptag(n)
+
+
+        function panel_add(){
+            let l_comm=document.querySelector('.l-communication');
+            let p_comm=document.querySelector('.l-communication div:first-child');
+            let i_input=p_comm.querySelector('#allFlg');
+
+            if(!i_input){
+                let add_comm=p_comm.cloneNode(true);
+                let c_title=add_comm.querySelector('h2');
+                c_title.textContent='全SNS機能';
+                let c_input=add_comm.querySelector('#commentFlg');
+                c_input.setAttribute('name', 'allFlg');
+                c_input.setAttribute('id', 'allFlg');
+                let c_label=add_comm.querySelector('label');
+                c_label.setAttribute('for', 'allFlg');
+                c_label.textContent='Close';
+
+                l_comm.insertBefore(add_comm, p_comm); }
+
+            let label_commFlg=l_comm.querySelector('label[for="commentFlg"]');
+            label_commFlg.textContent='Close';
+
+            let label_reblogFlg=l_comm.querySelector('label[for="reblogFlg"]');
+            label_reblogFlg.textContent='Close';
+
+            let ame_comm=document.querySelector('#amemberFlg').closest('.p-communication');
+            let ame_title=ame_comm.querySelector('h2');
+            ame_title.textContent='公開';
+
+        } // panel_add()
+
+
+        // 以下の style_text を編集すると 常設 styleタグ内容を変更出来ます ⭕
+        let style_text='@import url("https://use.fontawesome.com/releases/v5.8.2/css/all.css"); '+
+            'body { font-family: Meiryo,sans-serif; }';
+        let insert_elem_s;
+
+        let submitButton=document.querySelectorAll('.js-submitButton');
+        submitButton[0].addEventListener('click', insert_tag , false);
+        submitButton[1].addEventListener('click', insert_tag , false);
+
+        function insert_tag(e){
+            let editor_iframe=document.querySelector('.cke_wysiwyg_frame');
+            if(editor_iframe){ // iframe読込みが実行条件
+                let iframe_doc=editor_iframe.contentWindow.document;
+                if(iframe_doc){
+                    let iframe_body=iframe_doc.querySelector('body.cke_editable');
+
+                    insert_elem_s=iframe_doc.createElement('style');
+                    insert_elem_s.appendChild(iframe_doc.createTextNode(style_text));
+                    insert_elem_s.setAttribute('class', 'asa');
+
+                    let old_asa=iframe_body.querySelector('.asa');
+                    if(old_asa){
+                        old_asa.remove(); } // 既に書込まれていたら削除して更新する
+                    iframe_body.appendChild(insert_elem_s); }} // 記事末尾に style.asaを追加
+            else{
+                e.stopImmediatePropagation();
+                alert(
+                    "　⛔　Auto Style Attach\n"+
+                    "　　　常設 styleタグ の書込み・更新のため\n"+
+                    "　　　通常表示画面から投稿をしてください"); }}
+
+    } // catch_publish()
+
+} // main()
