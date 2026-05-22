@@ -1,0 +1,68 @@
+// ==UserScript==
+// @name        Auto Style Attach ⭐
+// @namespace  http://tampermonkey.net/
+// @version      0.5
+// @description  文書末尾に常設 styleタグを自動記入する
+// ⛔文書保存時（下書きを含む全投稿時）に常設 styleタグを書込みます。
+// ⛔旧タイプ（文書先頭）のstyleタグは削除し末尾に移動、文書末尾に既にある場合は書込みません。
+// @author       Ameba Blog User
+// @match        https://blog.ameba.jp/ucs/entry/srventry*
+// @exclude      https://blog.ameba.jp/ucs/entry/srventrylist.do*
+// @grant         none
+// ==/UserScript==
+
+
+let retry=0;
+let interval=setInterval(wait_target, 100);
+function wait_target(){
+    retry++;
+    if(retry>10){ // リトライ制限 10回 1sec
+        clearInterval(interval); }
+    let target=document.getElementById('cke_1_contents'); // 監視 target
+    if(target){
+        clearInterval(interval);
+        main(); }}
+
+
+function main(){
+
+    var target=document.getElementById('cke_1_contents'); // 監視 target
+    var monitor=new MutationObserver(catch_publish);
+    monitor.observe(target, {childList: true}); // 通常・HTML編集切換による発火不能を防ぐ
+
+    catch_publish();
+
+    function catch_publish(){
+        if(document.querySelector('.l-gHeaderLeft__link a')){ // 起動を「トップページ」アイコンに表示 📛
+            document.querySelector('.l-gHeaderLeft__link a').style.boxShadow='inset -14px 0 0 0 #79fbf6'; }
+
+        // ここを編集すると styleタグ内容を変更出来ます
+        var style_text=['@import url("https://use.fontawesome.com/releases/v5.8.2/css/all.css");',
+                        'body {font-family: Meiryo,sans-serif;}'].join(' ');
+        var insert_elem_s;
+        var submitButton=document.querySelectorAll('.js-submitButton');
+        var editor_iframe=document.querySelector('.cke_wysiwyg_frame');
+
+        if(editor_iframe !=null){ //「通常表示」編集画面が実行条件
+            submitButton[0].addEventListener('mousedown', insert_tag, false);
+            submitButton[1].addEventListener('mousedown', insert_tag, false);
+            submitButton[2].addEventListener('mousedown', insert_tag, false); }
+
+        function insert_tag(){
+            if(editor_iframe.contentWindow){ // iframe読込みが実行条件
+                var iframe_doc=editor_iframe.contentWindow.document;
+                var iframe_body=iframe_doc.querySelector('body.cke_editable');
+
+                insert_elem_s=iframe_doc.createElement('style');
+                insert_elem_s.appendChild(iframe_doc.createTextNode(style_text));
+                insert_elem_s.setAttribute('class', 'asa');
+
+                if(iframe_body.firstChild.getAttribute('class')=='sie'){
+                    iframe_body.firstChild.remove(); } // 記事先頭の sieは削除
+
+                if(!iframe_body.querySelector('.asa')){ // 記事末尾に style.asaを追加
+                    iframe_body.appendChild(insert_elem_s); }}}
+
+    } // catch_publish 関数（保存ボタン押下時にタグ書込みを実行）
+
+}
