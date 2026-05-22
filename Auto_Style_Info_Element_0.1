@@ -1,0 +1,46 @@
+// ==UserScript==
+// @name        Auto Style Info Element
+// @namespace  http://tampermonkey.net/
+// @version      0.1
+// @description  文書に常設 styleタグを自動記入する
+//   ⛔文書保存時（下書きを含む全投稿時）に常設 styleタグを書込みます。タグを既存の場合は実行しません。
+// @author       Ameba Blog User
+// @match        https://blog.ameba.jp/ucs/entry/srventry*
+// @grant         none
+// ==/UserScript==
+
+window.addEventListener('load', function(){
+    'use strict';
+
+var target=document.getElementById('cke_1_contents'); // 監視 target
+var monitor=new MutationObserver(catch_publish);
+monitor.observe(target, {childList: true}); // 通常・HTML編集切換による発火不能を防ぐ
+
+catch_publish();
+
+function catch_publish(){
+    // ここを編集すると styleタグ内容を変更出来ます
+    var style_text='@import url("https://use.fontawesome.com/releases/v5.8.2/css/all.css"); body {font-family: Meiryo,sans-serif;}';
+    var insert_elem_s;
+    var submitButton=document.querySelectorAll('.js-submitButton');
+    var editor_iframe=document.querySelector('.cke_wysiwyg_frame');
+
+    if(editor_iframe !=null){ //「通常表示」編集画面が実行条件
+        submitButton[0].addEventListener("mousedown", insert_tag, false);
+        submitButton[1].addEventListener("mousedown", insert_tag, false);
+        submitButton[2].addEventListener("mousedown", insert_tag, false); }
+
+function insert_tag(){
+    if(editor_iframe.contentWindow){ // iframe読込みが実行条件
+    var iframe_doc=editor_iframe.contentWindow.document;
+    var iframe_body=iframe_doc.querySelector('body.cke_editable');
+
+    insert_elem_s=iframe_doc.createElement("style");
+    insert_elem_s.appendChild(iframe_doc.createTextNode(style_text));
+    insert_elem_s.setAttribute("class", "sie");
+
+    if(iframe_body.firstChild.className !="sie"){ //既に styleタグが有る場合は無効
+        iframe_body.insertBefore(insert_elem_s, iframe_body.firstChild); }}}
+} // catch_publish 関数（保存ボタン押下時にタグ書込みを実行）
+
+});
