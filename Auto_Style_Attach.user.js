@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name        Auto Style Attach ⭐
 // @namespace        http://tampermonkey.net/
-// @version        1.8
+// @version        1.9
 // @description        文書末尾に常設 styleタグを自動記入する
 // @author        Ameba Blog User
-// @match        https://blog.ameba.jp/ucs/entry/srventry*
-// @exclude        https://blog.ameba.jp/ucs/entry/srventrylist.do*
+// @match        https://blog.ameba.jp/ucs/entry/srventryinsertinput.do*
+// @match        https://blog.ameba.jp/ucs/entry/srventryupdateinput.do*
 // @icon        https://www.google.com/s2/favicons?sz=64&domain=ameblo.jp
 // @grant        none
 // @updateURL        https://github.com/personwritep/Auto_Style_Attach/raw/main/Auto_Style_Attach.user.js
@@ -175,4 +175,3 @@ function main(){
     } // catch_publish()
 
 } // main()
-
