@@ -123,7 +123,7 @@ function main(){
         function pts_tag(iframe_body){
             // style_ptext を編集して SNSボタンの非表示内容を変更出来ます ⭕⭕⭕
             let style_ptext=
-                '<style class="pts" type="text/css">'+
+                '<style class="pts">'+
                 '[data-uranus-component="entryAction"], '+
                 '[data-uranus-component="feedbacks"] { display: none; } '+
 
@@ -158,7 +158,7 @@ function main(){
         function asa_tag(iframe_body){
             // 以下の style_text を編集すると 常設 styleタグ内容を変更出来ます ⭕⭕⭕
             let style_text=
-                '<style class="asa" type="text/css">'+
+                '<style class="asa">'+
                 '@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css"); '+
                 '</style>';
 
