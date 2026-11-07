@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Auto Style Attach ⭐
 // @namespace        http://tampermonkey.net/
-// @version        2.0
+// @version        2.1
 // @description        文書末尾に常設 styleタグを自動記入する
 // @author        Ameba Blog User
 // @match        https://blog.ameba.jp/ucs/entry/srventryinsertinput.do*
@@ -15,6 +15,9 @@
 
 // 文書保存時（下書きを含む全投稿時）に常設 styleタグを書込みます
 // SNSボタン非表示を設定できます（PC表示のみ）
+
+
+let listen=Symbol();
 
 
 let retry=0;
@@ -169,8 +172,12 @@ function main(){
 
 
         let submitButton=document.querySelectorAll('.js-submitButton');
-        submitButton[0].addEventListener('click', insert_tag, true);
-        submitButton[1].addEventListener('click', insert_tag, true);
+        if(!submitButton[0][listen]){
+            submitButton[0].addEventListener('click', insert_tag, true);
+            submitButton[0][listen]=true; }
+        if(!submitButton[1][listen]){
+            submitButton[1].addEventListener('click', insert_tag, true);
+            submitButton[1][listen]=true; }
 
         function insert_tag(event){
             let editor_iframe=document.querySelector('.cke_wysiwyg_frame');
